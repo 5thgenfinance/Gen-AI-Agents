@@ -37,12 +37,11 @@ audit_enabled: true
 messages:
   - step: research
     instruction: >
-	  Get the latest NI-43-101, stock price, outstanding shares, warrants, convertible_debt and metals prices as well as latest news and commentary on the Company
+    Get the latest NI-43-101, stock price, outstanding shares, warrants, convertible_debt and metals prices as well as latest news and commentary on the Company
   - step: enforce_primary_source
     instruction: >
       For each reserves or resources figure, fetch and cite the original NI 43-101 or SEC table.
       Do not proceed until every AgEq, Ag, Au, Zn, Pb, Cu, and tonnage line item has an inline citation.	
-	
 
 description: >
   Expert mining stock analysis agent with integrated data quality audit system
