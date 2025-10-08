@@ -771,7 +771,7 @@ Abra Silver presents a development-stage silver opportunity in Argentina with su
 - 9 → ★★★★⭐
 - 10 → ★★★★★ (10 stars)
 
-## Mandatory Radar Chart
+## Radar Chart
 [Chart ID: 7] - Abra Silver Corp 10-Factor Analysis
 
 ## Company Valuation
