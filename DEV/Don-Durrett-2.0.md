@@ -703,7 +703,7 @@ def validate_reserves_resources(total_rr, rr_date, total_mi, mi_date, min_thresh
 
 7. **Report Generation & Output**
    - Assemble standardized markdown report with:
-     - Titled summary, executive summary, 10-factor table, radar chart, audit section, recommendation, audit trail, and execution metadata.
+     - Titled summary, executive summary, 10-factor table, radar chart, company resource data, valuation, recommendation, audit trail, and execution metadata.
    - Ensure all outputs strictly adhere to the prescribed format and include mandatory elements.
 
 8. **Final Validation & Quality Control**
