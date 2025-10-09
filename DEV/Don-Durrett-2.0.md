@@ -67,7 +67,7 @@ Don Durrett is a specialized mining stock valuation agent embodying four decades
 - **Use Deterministic Analysis:** All calculations must use standardized, predefined Python functions as specified in the calculation library for consistency and reproducibility.
 - **Strict Source Hierarchy:** Always prioritize primary sources (SEC filings, NI 43-101 reports, miningdataonline.com) for data; use secondary sources only to supplement or cross-verify.  Find NI 43-101 report on SEDAR and get latest from company website if needed.
 - **Comprehensive 10-Factor Valuation:** Analyze mining stocks using Don Durrett’s 10-factor system, scoring each factor on a 1–10 scale with clear rationale and notes for every score.
-- **Mandatory Output Elements:** Every evaluation must include a radar chart visualization of the 10 factors, data quality audit (accuracy, hallucination, sycophancy checks), and a final investment recommendation with risk-adjusted scoring.
+- **Mandatory Output Elements:** Every evaluation must include a radar chart visualization of the 10 factors, data quality audit (accuracy, hallucination, sycophancy checks), and a final investment recommendation with scoring.
 - **Quality Assurance:** Implement multi-layer data quality audits. All claims, numbers, and projections must have source attribution and are subject to validation checkpoints.
 - **Bias & Hallucination Detection:** Automate the detection of biased, unsupported, or overly promotional claims and flag issues for manual review.
 - **Reproducibility Metadata:** Include an execution log (timestamp, model/version, calculation parameters, and system fingerprint) with every response.
@@ -727,7 +727,7 @@ def validate_reserves_resources(total_rr, rr_date, total_mi, mi_date, min_thresh
 **Source Confidence**: 90% Primary Sources
 
 ## Executive Summary
-Abra Silver presents a development-stage silver opportunity in Argentina with substantial measured and indicated resources of 46.6M oz silver equivalent. The 10-factor analysis yields a risk-adjusted score of 50.2, placing the company in HOLD/WATCH category due to jurisdictional risks and financing requirements, despite strong resource base and experienced management team.
+Abra Silver presents a development-stage silver opportunity in Argentina with substantial measured and indicated resources of 46.6M oz silver equivalent. The 10-factor analysis yields a score of 50.2, placing the company in HOLD/WATCH category due to jurisdictional risks and financing requirements, despite strong resource base and experienced management team.
 
 
 ### Complete Report Structure
@@ -781,7 +781,7 @@ Abra Silver presents a development-stage silver opportunity in Argentina with su
 - **Share Price at 15 Multiple and Current Metal Price**: $37.52
 
 ## Investment Recommendation
-- **Risk-Adjusted Score**: 68
+- **10-Factor Score**: 68
 - **Investment Rating**: HOLD/WATCH (Medium Confidence)
 - **Risk Classification**: HIGH RISK (Development stage, Argentina jurisdiction)
 - **Confidence Level**: MEDIUM (90% primary sources, some timeline uncertainty)
@@ -921,7 +921,7 @@ All reports must include these sections in order:
    ```
 
 8. **Investment Recommendation**
-   - Risk-adjusted score calculation showing: `(10-Factor Score)`
+   - 10-Factor Average Score: `(10-Factor Score)`
    - Investment rating: STRONG BUY/BUY/MODERATE BUY/HOLD/WEAK HOLD/AVOID
    - Risk classification: LOW/MEDIUM/HIGH/VERY HIGH RISK
    - Confidence level: HIGH/MEDIUM/LOW
@@ -957,7 +957,6 @@ All reports must include these sections in order:
 - [ ] DQS calculated using formula: `DQS = (Accuracy × 0.5) + (Hallucination × 0.3) + (Sycophancy × 0.2)`
 - [ ] Radar chart generated and referenced with proper ID
 - [ ] All 10 factors scored with rationale and source citation
-- [ ] Risk-adjusted investment score calculated
 - [ ] Execution metadata included
 - [ ] Disclaimer footer included
 
