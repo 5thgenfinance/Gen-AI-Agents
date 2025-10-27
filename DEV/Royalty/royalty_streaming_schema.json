@@ -1,0 +1,630 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Royalty and Streaming Asset NAV Model Schema",
+  "description": "Schema for capturing royalty and streaming company asset data for NPV/NAV calculations",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "company_name",
+    "company_ticker",
+    "project_name",
+    "operator_name",
+    "resource_type",
+    "development_stage",
+    "royalty_type"
+  ],
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "description": "Unique identifier for the asset"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Name of the royalty/streaming company owning the interest"
+    },
+    "company_ticker": {
+      "type": "string",
+      "description": "Stock ticker symbol of the royalty/streaming company"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Name of the mining project"
+    },
+    "operator_name": {
+      "type": "string",
+      "description": "Name of the company operating the mine"
+    },
+    "operator_ticker": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Stock ticker symbol of the operator (if public)"
+    },
+    "resource_type": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "gold",
+          "silver",
+          "copper",
+          "platinum",
+          "palladium",
+          "zinc",
+          "lead",
+          "nickel",
+          "cobalt",
+          "lithium",
+          "uranium",
+          "iron_ore",
+          "coal",
+          "oil",
+          "natural_gas",
+          "other"
+        ]
+      },
+      "description": "Type(s) of mineral/energy resources"
+    },
+    "development_stage": {
+      "type": "string",
+      "enum": [
+        "producing",
+        "development",
+        "advanced_exploration",
+        "exploration",
+        "care_and_maintenance"
+      ],
+      "description": "Current stage of the project"
+    },
+    "royalty_type": {
+      "type": "string",
+      "enum": [
+        "NSR",
+        "GRR",
+        "NPI",
+        "GVR",
+        "NPRI",
+        "ORRI",
+        "NRI",
+        "stream",
+        "hybrid"
+      ],
+      "description": "Type of royalty or streaming agreement - NSR=Net Smelter Return, GRR=Gross Revenue Royalty, NPI=Net Profits Interest, GVR=Gross Value Royalty, NPRI=Non-Participating Royalty Interest, ORRI=Overriding Royalty Interest, NRI=Net Revenue Interest"
+    },
+    "royalty_rate_percent": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Royalty rate as a percentage (for royalty interests)"
+    },
+    "stream_rate": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Stream purchase terms",
+      "properties": {
+        "metal": {
+          "type": "string",
+          "description": "Metal being streamed"
+        },
+        "percentage_of_production": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage of mine production covered by stream"
+        },
+        "ongoing_payment_per_unit": {
+          "type": "number",
+          "description": "Ongoing payment per ounce/pound (e.g., $450/oz for gold)"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        }
+      }
+    },
+    "geography": {
+      "type": "object",
+      "description": "Geographic location information",
+      "required": [
+        "country"
+      ],
+      "properties": {
+        "country": {
+          "type": "string"
+        },
+        "state_province": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latitude": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "longitude": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "jurisdiction_risk_rating": {
+      "type": "string",
+      "enum": [
+        "low",
+        "moderate",
+        "high",
+        "very_high"
+      ],
+      "description": "Sovereign/political risk assessment for discount rate adjustment"
+    },
+    "production_forecast": {
+      "type": "array",
+      "description": "Annual production forecast by year",
+      "items": {
+        "type": "object",
+        "required": [
+          "year",
+          "metal",
+          "production_units",
+          "production_quantity"
+        ],
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "metal": {
+            "type": "string"
+          },
+          "production_units": {
+            "type": "string",
+            "enum": [
+              "ounces",
+              "pounds",
+              "tonnes",
+              "kilograms",
+              "barrels",
+              "mcf"
+            ],
+            "description": "Units of production measurement"
+          },
+          "production_quantity": {
+            "type": "number"
+          },
+          "attributable_to_royalty": {
+            "type": "number",
+            "description": "Production attributable to the royalty/stream holder based on royalty rate"
+          }
+        }
+      }
+    },
+    "mine_life_years": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Remaining mine life in years"
+    },
+    "reserve_data": {
+      "type": "object",
+      "description": "Proven and probable reserves",
+      "properties": {
+        "proven_reserves": {
+          "type": "object",
+          "properties": {
+            "tonnage": {
+              "type": "number"
+            },
+            "grade": {
+              "type": "number"
+            },
+            "contained_metal": {
+              "type": "number"
+            },
+            "units": {
+              "type": "string"
+            }
+          }
+        },
+        "probable_reserves": {
+          "type": "object",
+          "properties": {
+            "tonnage": {
+              "type": "number"
+            },
+            "grade": {
+              "type": "number"
+            },
+            "contained_metal": {
+              "type": "number"
+            },
+            "units": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "resource_data": {
+      "type": "object",
+      "description": "Measured, indicated, and inferred resources",
+      "properties": {
+        "measured_resources": {
+          "type": "object",
+          "properties": {
+            "tonnage": {
+              "type": "number"
+            },
+            "grade": {
+              "type": "number"
+            },
+            "contained_metal": {
+              "type": "number"
+            },
+            "units": {
+              "type": "string"
+            }
+          }
+        },
+        "indicated_resources": {
+          "type": "object",
+          "properties": {
+            "tonnage": {
+              "type": "number"
+            },
+            "grade": {
+              "type": "number"
+            },
+            "contained_metal": {
+              "type": "number"
+            },
+            "units": {
+              "type": "string"
+            }
+          }
+        },
+        "inferred_resources": {
+          "type": "object",
+          "properties": {
+            "tonnage": {
+              "type": "number"
+            },
+            "grade": {
+              "type": "number"
+            },
+            "contained_metal": {
+              "type": "number"
+            },
+            "units": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "metal_price_assumptions": {
+      "type": "object",
+      "description": "Metal price assumptions for NPV calculation",
+      "properties": {
+        "gold_per_oz": {
+          "type": "number"
+        },
+        "silver_per_oz": {
+          "type": "number"
+        },
+        "copper_per_lb": {
+          "type": "number"
+        },
+        "platinum_per_oz": {
+          "type": "number"
+        },
+        "palladium_per_oz": {
+          "type": "number"
+        },
+        "zinc_per_lb": {
+          "type": "number"
+        },
+        "lead_per_lb": {
+          "type": "number"
+        },
+        "nickel_per_lb": {
+          "type": "number"
+        },
+        "cobalt_per_lb": {
+          "type": "number"
+        },
+        "oil_per_barrel": {
+          "type": "number"
+        },
+        "natural_gas_per_mcf": {
+          "type": "number"
+        },
+        "price_source": {
+          "type": "string",
+          "description": "Source of price assumptions (e.g., consensus, company, spot)"
+        },
+        "price_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "discount_rate_components": {
+      "type": "object",
+      "description": "Components used to build the discount rate",
+      "properties": {
+        "base_rate_percent": {
+          "type": "number",
+          "description": "Base discount rate (6-8% for precious metals, 10%+ for base metals)"
+        },
+        "jurisdiction_risk_premium_percent": {
+          "type": "number",
+          "description": "Additional discount for jurisdiction risk (0-7%)"
+        },
+        "stage_risk_premium_percent": {
+          "type": "number",
+          "description": "Additional discount for development stage (0-3%)"
+        },
+        "total_discount_rate_percent": {
+          "type": "number",
+          "description": "Total discount rate applied to cash flows"
+        }
+      }
+    },
+    "cash_flow_projections": {
+      "type": "array",
+      "description": "Annual cash flow projections from the royalty/stream",
+      "items": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer"
+          },
+          "revenue": {
+            "type": "number"
+          },
+          "ongoing_stream_payments": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "net_cash_flow": {
+            "type": "number"
+          },
+          "discounted_cash_flow": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "npv_calculations": {
+      "type": "object",
+      "description": "NPV calculation results",
+      "properties": {
+        "npv_5_percent": {
+          "type": "number"
+        },
+        "npv_8_percent": {
+          "type": "number"
+        },
+        "npv_10_percent": {
+          "type": "number"
+        },
+        "npv_at_company_discount_rate": {
+          "type": "number"
+        },
+        "calculation_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "buyback_provisions": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Buyback or step-down provisions in the agreement",
+      "properties": {
+        "has_buyback_option": {
+          "type": "boolean"
+        },
+        "buyback_price": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "buyback_conditions": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rate_after_buyback": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "production_caps": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Any caps on royalty payments",
+      "properties": {
+        "has_cap": {
+          "type": "boolean"
+        },
+        "cap_amount": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "cap_units": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cap_type": {
+          "type": "string",
+          "enum": [
+            "annual_production",
+            "total_production",
+            "total_payment",
+            "none"
+          ]
+        }
+      }
+    },
+    "technical_report_references": {
+      "type": "array",
+      "description": "References to technical reports (NI 43-101, JORC, etc.)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "report_type": {
+            "type": "string",
+            "enum": [
+              "NI_43-101",
+              "JORC",
+              "SAMREC",
+              "PEA",
+              "PFS",
+              "FS"
+            ]
+          },
+          "report_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "qualified_person": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "quarterly_geo_contribution": {
+      "type": "array",
+      "description": "Historical quarterly GEO (Gold Equivalent Ounce) contributions from MD&A",
+      "items": {
+        "type": "object",
+        "properties": {
+          "quarter": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "geo_ounces": {
+            "type": "number"
+          },
+          "revenue": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "data_sources": {
+      "type": "object",
+      "description": "Sources of data for this asset",
+      "properties": {
+        "asset_handbook_page": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "md_and_a_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "technical_reports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "environmental_considerations": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Environmental and permitting status",
+      "properties": {
+        "permits_in_place": {
+          "type": "boolean"
+        },
+        "environmental_assessment_status": {
+          "type": "string"
+        },
+        "reclamation_obligations": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "operator_financial_health": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Financial health of the operator (affects risk)",
+      "properties": {
+        "credit_rating": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "market_cap_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "debt_to_equity": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
