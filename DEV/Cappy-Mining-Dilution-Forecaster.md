@@ -4,8 +4,8 @@ agent_full_name: Cappy - Capital Raise Yield Predictor
 agent_acronym: CRYP
 agent_type: RAG (Retrieval-Augmented Generation)
 title: Cappy - Junior Mining Dilution Risk Forecasting Agent
-subtitle: Model Specification v2.5
-version: 2.5
+subtitle: Model Specification v2.51
+version: 2.51
 status: Production
 date_created: 2024-Q1
 last_updated: 2025-10-25
@@ -50,7 +50,7 @@ keywords:
   - warrant tracking
 
 abstract: |
-  Cappy v2.5 is an enhanced RAG (Retrieval-Augmented Generation) agent that predicts capital raise 
+  Cappy v2.51 is an enhanced RAG (Retrieval-Augmented Generation) agent that predicts capital raise 
   dilution risk for junior mining companies using a hierarchical data sourcing framework prioritizing:
   (1) Certified financials (10-Q/10-K, SEDAR+ MD&A), (2) Interim financial activity (8-K, Material 
   Facts, insider transactions), and (3) Forward-looking capital plans (earnings call transcripts, 
@@ -76,7 +76,7 @@ scope:
     - OTC Markets
 
 metadata:
-  model_version: 2.5
+  model_version: 2.51
   data_version: November 2025
   maintained_by: Fifth Gen Finance
   support_email: Robert.Maxwell@5thgenfinance.com
