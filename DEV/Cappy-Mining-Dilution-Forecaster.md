@@ -9,8 +9,9 @@ version: 2.5
 status: Production
 date_created: 2024-Q1
 last_updated: 2025-10-25
-author: Junior Mining Analytics Team
-deterministic: true
+author: Robert Maxwell
+deterministic: true # top-p and top-k parameters are not used
+frequency_penalty = 0
 
 # Agent Identity
 agent_metadata:
@@ -499,6 +500,7 @@ Stop searching once sufficient data is found. Tier 1 + partial Tier 2 typically 
 
 ---
 
+
 ## Total Research Effort
 
 | Phase | Duration | Token Cost | Output |
@@ -595,6 +597,305 @@ Does 10-Q/MD&A contain capital runway estimate?
 | Large insider SELL + capital raise announcement | Double confirmation | Very HIGH risk; dilution likely |
 
 **Example:** If CEO & CFO both sell 100K shares each in Month 1, then company announces $50M capital raise in Month 2 at 20% discount, this confirms DILUTION.
+
+## SECTION 3.1: INTERACTIVE DASHBOARD WIDGET GENERATION
+
+After Cappy v2.5 completes composite risk scoring (Risk Score Calculation), 
+generate an interactive Plotly dashboard widget for visual risk communication.
+
+### Implementation: CappyDilutionDashboard Class (Inline)
+
+```python
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+from datetime import datetime
+
+class CappyDilutionDashboard:
+    '''
+    Cappy v2.5 - Mining Dilution Risk Dashboard Widget Generator
+    Produces interactive Plotly-based visualization for junior mining companies
+    Embedded directly in Cappy output workflow
+    '''
+
+    def __init__(self, company_name, ticker, evaluation_date, risk_score, risk_category):
+        self.company_name = company_name
+        self.ticker = ticker
+        self.evaluation_date = evaluation_date
+        self.risk_score = risk_score
+        self.risk_category = risk_category
+
+    def create_dashboard(self, financial_data, timeline_data, capital_structure):
+        '''
+        Generate comprehensive dilution risk dashboard
+
+        Parameters:
+        -----------
+        financial_data : dict
+            Keys: 'cash', 'monthly_burn', 'capex_need', 'shortfall'
+        timeline_data : list of dict
+            Keys: 'quarter', 'milestone', 'capex'
+        capital_structure : dict
+            Keys: 'basic_shares', 'diluted_shares', 'current_dilution_pct'
+        '''
+
+        # Create subplots: 2 rows x 2 columns
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=(
+                "Cash Position vs. Capex Need",
+                "Project Timeline & Capital Requirements",
+                "Risk Score Gauge",
+                "Capital Structure Dilution"
+            ),
+            specs=[
+                [{"type": "bar"}, {"type": "scatter"}],
+                [{"type": "indicator"}, {"type": "pie"}]
+            ],
+            vertical_spacing=0.15,
+            horizontal_spacing=0.12
+        )
+
+        # --- SUBPLOT 1: Cash Position vs. Capex (Horizontal Bar Chart) ---
+        cash_metrics = financial_data
+        categories = ['Current Cash', 'Monthly Burn\n(x10 mo.)', 'PEA + Trial\nCapex', 'Shortfall']
+        values = [
+            cash_metrics['cash'],
+            cash_metrics['monthly_burn'] * 10,
+            cash_metrics['capex_need'],
+            cash_metrics['shortfall']
+        ]
+        colors = ['#2ecc71', '#e74c3c', '#f39c12', '#c0392b']
+
+        fig.add_trace(
+            go.Bar(
+                x=values,
+                y=categories,
+                orientation='h',
+                marker=dict(color=colors),
+                text=[f"${v:.1f}M" for v in values],
+                textposition='auto',
+                hovertemplate='%{y}: $%{x:.1f}M<extra></extra>',
+                name='Capital Metrics'
+            ),
+            row=1, col=1
+        )
+
+        # --- SUBPLOT 2: Project Timeline (Scatter with annotations) ---
+        timeline_df = pd.DataFrame(timeline_data)
+        quarter_map = {'Q4 2025': 0, 'Q1 2026': 1, 'Q2-Q3 2026': 2.5, 'H2 2026': 3.5}
+        timeline_df['quarter_num'] = timeline_df['quarter'].map(quarter_map)
+
+        fig.add_trace(
+            go.Scatter(
+                x=timeline_df['quarter_num'],
+                y=timeline_df['capex'],
+                mode='lines+markers+text',
+                marker=dict(size=12, color='#3498db'),
+                text=timeline_df['milestone'],
+                textposition='top center',
+                line=dict(color='#3498db', width=3),
+                hovertemplate='<b>%{text}</b><br>Capex: $%{y:.1f}M<extra></extra>',
+                name='Timeline'
+            ),
+            row=1, col=2
+        )
+
+        # --- SUBPLOT 3: Risk Score Gauge ---
+        risk_color_map = {
+            'LOW RISK': '#2ecc71',
+            'MEDIUM RISK': '#f39c12',
+            'HIGH RISK': '#e67e22',
+            'VERY HIGH RISK': '#c0392b'
+        }
+        gauge_color = risk_color_map.get(self.risk_category, '#e74c3c')
+
+        fig.add_trace(
+            go.Indicator(
+                mode="gauge+number+delta",
+                value=self.risk_score,
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Risk Score"},
+                delta={'reference': 0.55, 'suffix': ' vs. High Threshold'},
+                gauge={
+                    'axis': {'range': [0, 3.5]},
+                    'bar': {'color': gauge_color},
+                    'steps': [
+                        {'range': [0, 0.25], 'color': '#ecf0f1'},
+                        {'range': [0.25, 0.4], 'color': '#ecf0f1'},
+                        {'range': [0.4, 0.55], 'color': '#ecf0f1'},
+                        {'range': [0.55, 3.5], 'color': '#ecf0f1'}
+                    ],
+                    'threshold': {
+                        'line': {'color': '#c0392b', 'width': 4},
+                        'thickness': 0.75,
+                        'value': 0.55
+                    }
+                },
+                hovertemplate='Risk Score: %{value}<extra></extra>'
+            ),
+            row=2, col=1
+        )
+
+        # --- SUBPLOT 4: Capital Structure Pie Chart ---
+        cs = capital_structure
+        share_categories = ['Current Basic Shares', 'Options Outstanding', 'Warrants Outstanding']
+        share_values = [
+            cs['basic_shares'],
+            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.33,  # Approx options
+            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.67   # Approx warrants
+        ]
+
+        fig.add_trace(
+            go.Pie(
+                labels=share_categories,
+                values=share_values,
+                marker=dict(colors=['#3498db', '#9b59b6', '#e74c3c']),
+                textposition='inside',
+                textinfo='label+percent',
+                hovertemplate='<b>%{label}</b><br>Shares: %{value:.1f}M (%{percent})<extra></extra>',
+                name='Share Structure'
+            ),
+            row=2, col=2
+        )
+
+        # Update layout
+        fig.update_layout(
+            title={
+                'text': f"<b>{self.company_name} ({self.ticker}) - Dilution Risk Dashboard</b><br>" +
+                        f"<sub>Cappy v2.5 | Evaluation: {self.evaluation_date} | Risk: {self.risk_category} (Score: {self.risk_score:.2f})</sub>",
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': {'size': 18}
+            },
+            height=900,
+            showlegend=False,
+            hovermode='closest',
+            plot_bgcolor='#f8f9fa',
+            paper_bgcolor='white',
+            font=dict(family='Arial, sans-serif', size=11, color='#2c3e50')
+        )
+
+        # Update axes
+        fig.update_xaxes(title_text="Capital ($ Millions)", row=1, col=1)
+        fig.update_yaxes(title_text="", row=1, col=1)
+        fig.update_xaxes(title_text="Quarters (2025-2026)", row=1, col=2)
+        fig.update_yaxes(title_text="Capex ($ Millions)", row=1, col=2)
+
+        return fig
+
+    def save_widget(self, fig, filename='dilution_dashboard.html'):
+        '''Save dashboard as interactive HTML widget'''
+        fig.write_html(filename)
+        return filename
+
+    def display_widget(self, fig):
+        '''Display dashboard in Jupyter or interactive environment'''
+        fig.show()
+
+
+# INTEGRATION POINT: Call within Cappy output generation
+
+def generate_cappy_output_with_dashboard(
+    ticker, company_name, evaluation_date, risk_data, 
+    financial_data, timeline_data, capital_structure
+):
+    '''
+    Main Cappy output function with integrated dashboard generation
+
+    Called after Phase 1-3 analysis complete
+    '''
+
+    # Generate dashboard widget
+    dashboard = CappyDilutionDashboard(
+        company_name=company_name,
+        ticker=ticker,
+        evaluation_date=evaluation_date,
+        risk_score=risk_data['risk_score'],
+        risk_category=risk_data['risk_category']
+    )
+
+    # Create Plotly figure
+    fig = dashboard.create_dashboard(
+        financial_data=financial_data,
+        timeline_data=timeline_data,
+        capital_structure=capital_structure
+    )
+
+    # Export widget as HTML
+    dashboard_filename = f"{ticker}_dilution_dashboard.html"
+    dashboard.save_widget(fig, dashboard_filename)
+
+    # Return dashboard reference for inclusion in final report
+    return {
+        'dashboard_file': dashboard_filename,
+        'dashboard_html': fig.to_html(include_plotlyjs='cdn'),
+        'dashboard_json': fig.to_json()
+    }
+```
+
+### How to Call Within Cappy Workflow
+
+After Phase 3 analysis completes and risk score is calculated:
+
+```python
+# At end of PHASE 3 section, before final output generation:
+
+dashboard_output = generate_cappy_output_with_dashboard(
+    ticker=analysis_ticker,
+    company_name=analysis_company,
+    evaluation_date=analysis_date,
+    risk_data={
+        'risk_score': composite_risk_score,
+        'risk_category': risk_category_label,
+        'probability_of_raise_next_6q': prob_raise,
+        'expected_dilution_percent': expected_dilution
+    },
+    financial_data={
+        'cash': phase1_cash_position,
+        'monthly_burn': phase1_monthly_burn,
+        'capex_need': phase2_total_capex,
+        'shortfall': phase2_funding_gap
+    },
+    timeline_data=phase2_project_milestones,  # List of dicts with quarter, milestone, capex
+    capital_structure={
+        'basic_shares': phase3_basic_shares,
+        'diluted_shares': phase3_diluted_shares,
+        'current_dilution_pct': phase3_dilution_pct
+    }
+)
+
+# Include in final output JSON
+output_json['dashboard'] = {
+    'widget_file': dashboard_output['dashboard_file'],
+    'embedded_html': dashboard_output['dashboard_html']
+}
+```
+
+### Output Integration
+
+The dashboard is now generated as:
+1. **Standalone HTML file** (e.g., `AUMB_dilution_dashboard.html`) - can be emailed or uploaded
+2. **Embedded HTML string** - for inclusion in reports, Markdown, or web pages
+3. **JSON representation** - for API responses
+
+### Usage in Final Report
+
+In the narrative/report generation phase:
+
+```markdown
+## Dilution Risk Dashboard
+
+[Dashboard widget embedded below - interactive in HTML exports]
+
+[EMBEDDED_DASHBOARD_HTML]
+
+This interactive dashboard visualizes:
+- **Top-left**: Cash position vs. capex requirements (showing funding gap)
+- **Top-right**: Project timeline with capital milestones
+- **Bottom-left**: Risk score gauge with threshold indicators  
+- **Bottom-right**: Capital structure showing current dilution breakdown
+```
 
 ---
 
