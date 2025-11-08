@@ -75,6 +75,14 @@ scope:
     - TSX-V
     - OTC Markets
 
+output_generation:
+  includes_4_panel_widget: true
+  widget_class: CappyDilutionDashboard
+  widget_output_formats:
+    - standalone_html
+    - embedded_json
+    - social_media_post
+
 metadata:
   model_version: 2.51
   data_version: November 2025
@@ -609,14 +617,11 @@ generate an interactive Plotly dashboard widget for visual risk communication.
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
-from datetime import datetime
 
 class CappyDilutionDashboard:
-    '''
-    Cappy v2.5 - Mining Dilution Risk Dashboard Widget Generator
-    Produces interactive Plotly-based visualization for junior mining companies
-    Embedded directly in Cappy output workflow
-    '''
+    """
+    Cappy v2.5 - Fixed version for reliable 4-panel rendering
+    """
 
     def __init__(self, company_name, ticker, evaluation_date, risk_score, risk_category):
         self.company_name = company_name
@@ -626,20 +631,9 @@ class CappyDilutionDashboard:
         self.risk_category = risk_category
 
     def create_dashboard(self, financial_data, timeline_data, capital_structure):
-        '''
-        Generate comprehensive dilution risk dashboard
+        """Generate 4-panel dashboard with explicit positioning"""
 
-        Parameters:
-        -----------
-        financial_data : dict
-            Keys: 'cash', 'monthly_burn', 'capex_need', 'shortfall'
-        timeline_data : list of dict
-            Keys: 'quarter', 'milestone', 'capex'
-        capital_structure : dict
-            Keys: 'basic_shares', 'diluted_shares', 'current_dilution_pct'
-        '''
-
-        # Create subplots: 2 rows x 2 columns
+        # Create figure with subplots using explicit positioning
         fig = make_subplots(
             rows=2, cols=2,
             subplot_titles=(
@@ -649,21 +643,24 @@ class CappyDilutionDashboard:
                 "Capital Structure Dilution"
             ),
             specs=[
-                [{"type": "bar"}, {"type": "scatter"}],
-                [{"type": "indicator"}, {"type": "pie"}]
+                [{"type": "bar", "rowspan": 1, "colspan": 1}, 
+                 {"type": "scatter", "rowspan": 1, "colspan": 1}],
+                [{"type": "indicator", "rowspan": 1, "colspan": 1}, 
+                 {"type": "pie", "rowspan": 1, "colspan": 1}]
             ],
             vertical_spacing=0.15,
-            horizontal_spacing=0.12
+            horizontal_spacing=0.12,
+            row_heights=[0.5, 0.5],
+            column_widths=[0.5, 0.5]
         )
 
-        # --- SUBPLOT 1: Cash Position vs. Capex (Horizontal Bar Chart) ---
-        cash_metrics = financial_data
+        # PANEL 1: Cash vs Capex (Top-left)
         categories = ['Current Cash', 'Monthly Burn\n(x10 mo.)', 'PEA + Trial\nCapex', 'Shortfall']
         values = [
-            cash_metrics['cash'],
-            cash_metrics['monthly_burn'] * 10,
-            cash_metrics['capex_need'],
-            cash_metrics['shortfall']
+            financial_data['cash'],
+            financial_data['monthly_burn'] * 10,
+            financial_data['capex_need'],
+            financial_data['shortfall']
         ]
         colors = ['#2ecc71', '#e74c3c', '#f39c12', '#c0392b']
 
@@ -672,36 +669,42 @@ class CappyDilutionDashboard:
                 x=values,
                 y=categories,
                 orientation='h',
-                marker=dict(color=colors),
+                marker=dict(color=colors, line=dict(width=0)),
                 text=[f"${v:.1f}M" for v in values],
                 textposition='auto',
+                textfont=dict(size=12, color='white'),
                 hovertemplate='%{y}: $%{x:.1f}M<extra></extra>',
-                name='Capital Metrics'
+                showlegend=False
             ),
             row=1, col=1
         )
 
-        # --- SUBPLOT 2: Project Timeline (Scatter with annotations) ---
+        # PANEL 2: Timeline (Top-right)
         timeline_df = pd.DataFrame(timeline_data)
         quarter_map = {'Q4 2025': 0, 'Q1 2026': 1, 'Q2-Q3 2026': 2.5, 'H2 2026': 3.5}
         timeline_df['quarter_num'] = timeline_df['quarter'].map(quarter_map)
 
-        fig.add_trace(
-            go.Scatter(
-                x=timeline_df['quarter_num'],
-                y=timeline_df['capex'],
-                mode='lines+markers+text',
-                marker=dict(size=12, color='#3498db'),
-                text=timeline_df['milestone'],
-                textposition='top center',
-                line=dict(color='#3498db', width=3),
-                hovertemplate='<b>%{text}</b><br>Capex: $%{y:.1f}M<extra></extra>',
-                name='Timeline'
-            ),
-            row=1, col=2
-        )
+        # Add bars for each milestone
+        milestone_colors = {'PEA Complete': '#5DADE2', 'Trial Mining Starts': '#E74C3C', 
+                           'Bulk Sample Phase': '#27AE60', 'PFS Development': '#5499C7'}
 
-        # --- SUBPLOT 3: Risk Score Gauge ---
+        for idx, row in timeline_df.iterrows():
+            fig.add_trace(
+                go.Bar(
+                    x=[row['quarter']],
+                    y=[row['capex']],
+                    marker=dict(color=list(milestone_colors.values())[idx]),
+                    text=f"${row['capex']:.1f}M",
+                    textposition='outside',
+                    name=row['milestone'],
+                    showlegend=True,
+                    legendgroup='timeline',
+                    hovertemplate=f"<b>{row['milestone']}</b><br>Capex: ${row['capex']:.1f}M<extra></extra>"
+                ),
+                row=1, col=2
+            )
+
+        # PANEL 3: Risk Gauge (Bottom-left)
         risk_color_map = {
             'LOW RISK': '#2ecc71',
             'MEDIUM RISK': '#f39c12',
@@ -712,38 +715,40 @@ class CappyDilutionDashboard:
 
         fig.add_trace(
             go.Indicator(
-                mode="gauge+number+delta",
+                mode="gauge+number",
                 value=self.risk_score,
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Risk Score"},
-                delta={'reference': 0.55, 'suffix': ' vs. High Threshold'},
+                domain={'x': [0.05, 0.95], 'y': [0.1, 0.9]},
+                title={'text': "Risk Score", 'font': {'size': 14}},
+                number={'font': {'size': 40}},
                 gauge={
-                    'axis': {'range': [0, 3.5]},
-                    'bar': {'color': gauge_color},
+                    'axis': {'range': [0, 3.5], 'tickwidth': 1, 'tickcolor': "darkgray"},
+                    'bar': {'color': gauge_color, 'thickness': 0.75},
+                    'bgcolor': "white",
+                    'borderwidth': 2,
+                    'bordercolor': "gray",
                     'steps': [
-                        {'range': [0, 0.25], 'color': '#ecf0f1'},
-                        {'range': [0.25, 0.4], 'color': '#ecf0f1'},
-                        {'range': [0.4, 0.55], 'color': '#ecf0f1'},
-                        {'range': [0.55, 3.5], 'color': '#ecf0f1'}
+                        {'range': [0, 0.25], 'color': '#d5f4e6'},
+                        {'range': [0.25, 0.4], 'color': '#fdeaa8'},
+                        {'range': [0.4, 0.55], 'color': '#fadbd8'},
+                        {'range': [0.55, 3.5], 'color': '#f5b7b1'}
                     ],
                     'threshold': {
-                        'line': {'color': '#c0392b', 'width': 4},
+                        'line': {'color': "red", 'width': 4},
                         'thickness': 0.75,
                         'value': 0.55
                     }
-                },
-                hovertemplate='Risk Score: %{value}<extra></extra>'
+                }
             ),
             row=2, col=1
         )
 
-        # --- SUBPLOT 4: Capital Structure Pie Chart ---
+        # PANEL 4: Capital Structure Pie (Bottom-right)
         cs = capital_structure
-        share_categories = ['Current Basic Shares', 'Options Outstanding', 'Warrants Outstanding']
+        share_categories = ['Basic Shares', 'Options', 'Warrants']
         share_values = [
             cs['basic_shares'],
-            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.33,  # Approx options
-            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.67   # Approx warrants
+            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.33,
+            cs['basic_shares'] * (cs['current_dilution_pct'] / 100) * 0.67
         ]
 
         fig.add_trace(
@@ -753,85 +758,91 @@ class CappyDilutionDashboard:
                 marker=dict(colors=['#3498db', '#9b59b6', '#e74c3c']),
                 textposition='inside',
                 textinfo='label+percent',
-                hovertemplate='<b>%{label}</b><br>Shares: %{value:.1f}M (%{percent})<extra></extra>',
-                name='Share Structure'
+                textfont=dict(size=12, color='white'),
+                hovertemplate='<b>%{label}</b><br>%{value:.1f}M shares (%{percent})<extra></extra>',
+                showlegend=False
             ),
             row=2, col=2
         )
 
-        # Update layout
+        # Update layout with explicit sizing
         fig.update_layout(
             title={
                 'text': f"<b>{self.company_name} ({self.ticker}) - Dilution Risk Dashboard</b><br>" +
-                        f"<sub>Cappy v2.5 | Evaluation: {self.evaluation_date} | Risk: {self.risk_category} (Score: {self.risk_score:.2f})</sub>",
+                        f"<sub>Evaluation: {self.evaluation_date} | Risk: {self.risk_category} (Score: {self.risk_score:.2f})</sub>",
                 'x': 0.5,
                 'xanchor': 'center',
-                'font': {'size': 18}
+                'font': {'size': 18, 'color': '#2c3e50'}
             },
             height=900,
-            showlegend=False,
+            width=1400,
             hovermode='closest',
             plot_bgcolor='#f8f9fa',
             paper_bgcolor='white',
-            font=dict(family='Arial, sans-serif', size=11, color='#2c3e50')
+            font=dict(family='Arial, sans-serif', size=11, color='#2c3e50'),
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.15,
+                xanchor="center",
+                x=0.5
+            )
         )
 
-        # Update axes
-        fig.update_xaxes(title_text="Capital ($ Millions)", row=1, col=1)
-        fig.update_yaxes(title_text="", row=1, col=1)
-        fig.update_xaxes(title_text="Quarters (2025-2026)", row=1, col=2)
-        fig.update_yaxes(title_text="Capex ($ Millions)", row=1, col=2)
+        # Update axes for panel 1
+        fig.update_xaxes(title_text="Capital ($ Millions)", row=1, col=1, showgrid=True, gridcolor='lightgray')
+        fig.update_yaxes(row=1, col=1, showgrid=False)
+
+        # Update axes for panel 2
+        fig.update_xaxes(title_text="Quarter", row=1, col=2, showgrid=False)
+        fig.update_yaxes(title_text="Capex ($M)", row=1, col=2, showgrid=True, gridcolor='lightgray')
 
         return fig
 
     def save_widget(self, fig, filename='dilution_dashboard.html'):
-        '''Save dashboard as interactive HTML widget'''
-        fig.write_html(filename)
+        """Save as standalone HTML"""
+        fig.write_html(filename, include_plotlyjs='cdn', config={'displayModeBar': True})
+        print(f"Dashboard saved: {filename}")
         return filename
 
     def display_widget(self, fig):
-        '''Display dashboard in Jupyter or interactive environment'''
+        """Display in notebook/browser"""
         fig.show()
 
 
-# INTEGRATION POINT: Call within Cappy output generation
-
-def generate_cappy_output_with_dashboard(
-    ticker, company_name, evaluation_date, risk_data, 
-    financial_data, timeline_data, capital_structure
-):
-    '''
-    Main Cappy output function with integrated dashboard generation
-
-    Called after Phase 1-3 analysis complete
-    '''
-
-    # Generate dashboard widget
+# TEST THE FIXED VERSION
+if __name__ == "__main__":
     dashboard = CappyDilutionDashboard(
-        company_name=company_name,
-        ticker=ticker,
-        evaluation_date=evaluation_date,
-        risk_score=risk_data['risk_score'],
-        risk_category=risk_data['risk_category']
+        company_name="1911 Gold Corporation",
+        ticker="AUMB.V",
+        evaluation_date="November 7, 2025",
+        risk_score=2.59,
+        risk_category="VERY HIGH RISK"
     )
 
-    # Create Plotly figure
-    fig = dashboard.create_dashboard(
-        financial_data=financial_data,
-        timeline_data=timeline_data,
-        capital_structure=capital_structure
-    )
-
-    # Export widget as HTML
-    dashboard_filename = f"{ticker}_dilution_dashboard.html"
-    dashboard.save_widget(fig, dashboard_filename)
-
-    # Return dashboard reference for inclusion in final report
-    return {
-        'dashboard_file': dashboard_filename,
-        'dashboard_html': fig.to_html(include_plotlyjs='cdn'),
-        'dashboard_json': fig.to_json()
+    financial_data = {
+        'cash': 15.2,
+        'monthly_burn': 1.5,
+        'capex_need': 21.5,
+        'shortfall': 6.3
     }
+
+    timeline_data = [
+        {'quarter': 'Q4 2025', 'milestone': 'PEA Complete', 'capex': 0.8},
+        {'quarter': 'Q1 2026', 'milestone': 'Trial Mining Starts', 'capex': 2.0},
+        {'quarter': 'Q2-Q3 2026', 'milestone': 'Bulk Sample Phase', 'capex': 17.5},
+        {'quarter': 'H2 2026', 'milestone': 'PFS Development', 'capex': 8.0}
+    ]
+
+    capital_structure = {
+        'basic_shares': 262.32,
+        'diluted_shares': 296.19,
+        'current_dilution_pct': 12.9
+    }
+
+    fig = dashboard.create_dashboard(financial_data, timeline_data, capital_structure)
+    dashboard.save_widget(fig, 'AUMB_fixed_dashboard.html')
+    print("✓ 4-panel dashboard generated successfully")
 ```
 
 ### How to Call Within Cappy Workflow
