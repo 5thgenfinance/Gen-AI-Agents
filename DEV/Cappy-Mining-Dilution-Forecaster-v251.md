@@ -4,10 +4,11 @@ agent_full_name: Cappy - Capital Raise Yield Predictor
 agent_acronym: CRYP
 agent_type: RAG (Retrieval-Augmented Generation)
 title: Cappy - Junior Mining Dilution Risk Forecasting Agent
-subtitle: Model Specification v2.6
-version: 2.6
+subtitle: Model Specification v2.51
+version: 2.51
 status: Production
-last_updated: 2025-11-20
+date_created: 2024-Q1
+last_updated: 2025-10-25
 author: Robert Maxwell
 deterministic: true # top-p and top-k parameters are not used
 frequency_penalty = 0
@@ -49,12 +50,11 @@ keywords:
   - warrant tracking
 
 abstract: |
-  Cappy v2.6 is an enhanced RAG (Retrieval-Augmented Generation) agent that predicts capital raise 
-  dilution risk for junior mining companies using a **dual-mode forecasting framework** combining:
-  (1) Need-based capital raises (cash depletion driven), and (2) Opportunity-based capital raises 
-  (catalyst and market window driven). This version improves timing and probability prediction 
-  accuracy from 44% to 75%+ by incorporating event-driven financing triggers (FS completions, 
-  permitting approvals, market timing windows).  
+  Cappy v2.51 is an enhanced RAG (Retrieval-Augmented Generation) agent that predicts capital raise 
+  dilution risk for junior mining companies using a hierarchical data sourcing framework prioritizing:
+  (1) Certified financials (10-Q/10-K, SEDAR+ MD&A), (2) Interim financial activity (8-K, Material 
+  Facts, insider transactions), and (3) Forward-looking capital plans (earnings call transcripts, 
+  management guidance). This version reduces token usage by 40-50% while maintaining forecast fidelity.
 
 scope:
   commodities:
@@ -525,234 +525,6 @@ Stop searching once sufficient data is found. Tier 1 + partial Tier 2 typically 
 
 ---
 
-# SECTION 2.5: OPPORTUNITY-BASED CAPITAL RAISE ANALYSIS (NEW IN v2.6)
-
-## Overview
-
-Phase 2.5 identifies **opportunity-driven capital raises** triggered by:
-1. Project de-risking events (FS completion, permitting approvals)
-2. Market timing windows (stock price rallies, NAV premium valuations)
-3. Strategic front-loading decisions (raising 5-10x immediate need when conditions favorable)
-
-This phase operates in parallel with need-based analysis to create a **dual-mode prediction framework**.
-
----
-
-## MODULE 1: Catalyst Event Tracker
-
-**Purpose:** Monitor upcoming de-risking events that create capital-raising windows
-
-**Implementation:** (see full Python class in upgrade recommendation document)
-
-**Key Catalysts Tracked:**
-1. Feasibility Study Completion (70% trigger probability, 15-45 day window)
-2. Permitting Milestones (50% trigger probability, 30-60 day window)
-3. Construction Decisions (80% trigger probability, 0-30 day window)
-4. Production Ramp Targets (60% trigger probability, 60-180 day window)
-
-**Output Example:**
-{
-  "next_catalyst": {
-    "type": "Feasibility Study",
-    "days_away": 11,
-    "probability_trigger": 0.70,
-    "timing_window": "15-45 days post-announcement",
-    "raise_type": "Convertible debt or large equity",
-    "raise_scale": "Front-load entire development (5-10x immediate need)"
-  }
-}
-
----
-
-## MODULE 2: Market Window Detector
-
-**Purpose:** Identify favorable market conditions creating capital-raising optionality
-
-**Three Windows Monitored:**
-
-1. **Stock Price Rally Window**
-   - Trigger: 30%+ rally in 30 days OR 50%+ rally in 90 days
-   - Probability Impact: 0.40-0.65 depending on magnitude
-   - Timing: Immediate (within 30 days)
-
-2. **Premium Valuation Window**
-   - Trigger: Trading >1.2x NAV
-   - Probability Impact: 0.50-0.70 depending on multiple
-   - Timing: Within 60 days
-
-3. **Commodity Strength Window**
-   - Trigger: >15% premium vs. PEA commodity price assumption
-   - Probability Impact: 0.35-0.55 depending on premium
-   - Timing: Within 90 days
-
-**Output Example:**
-{
-  "market_windows_open": true,
-  "num_windows": 2,
-  "windows": [
-    {
-      "window_type": "Stock Price Rally",
-      "rally_30d_pct": 55.3,
-      "probability_raise": 0.65,
-      "timing": "Immediate (within 30 days)"
-    },
-    {
-      "window_type": "Premium Valuation",
-      "nav_multiple": 1.62,
-      "probability_raise": 0.70,
-      "timing": "Within 60 days"
-    }
-  ],
-  "combined_probability": 0.70
-}
-
----
-
-## MODULE 3: Instrument Type Predictor
-
-**Purpose:** Predict whether raise will be equity, convertible debt, or project finance
-
-**Prediction Logic:**
-
-Based on five factors:
-1. **Project Stage** (40% weight)
-2. **IRR Quality** (25% weight)
-3. **Market Cap & NAV Multiple** (20% weight)
-4. **Debt Capacity** (15% weight)
-
-**Stage-Based Base Weights:**
-
-| Stage | Straight Equity | Convertible Debt | Project Finance | Strategic Investment |
-|-------|----------------|------------------|-----------------|---------------------|
-| Early Exploration | 80% | 15% | 0% | 5% |
-| Advanced Exploration | 65% | 25% | 0% | 10% |
-| Development (Permitted) | 30% | 50% | 15% | 5% |
-| Construction | 10% | 30% | 55% | 5% |
-| Production Ramp | 20% | 40% | 35% | 5% |
-
-**IRR Adjustment:**
-- IRR > 80%: +0.30 to Convertible Debt, +0.20 to Project Finance
-- IRR > 50%: +0.20 to Convertible Debt, +0.10 to Project Finance
-- IRR < 50%: +0.20 to Straight Equity
-
-**Output Example:**
-{
-  "predicted_instrument": "Convertible Debt",
-  "probability": 0.68,
-  "rationale": "High IRR (111%) supports debt financing | Premium valuation (1.6x NAV) makes conversion attractive | Delays dilution while preserving upside optionality"
-}
-
----
-
-## MODULE 4: Dual-Mode Probability Engine
-
-**Purpose:** Combine need-based and opportunity-based probabilities
-
-**Combination Logic:**
-combined_probability = max(prob_need_based, prob_opportunity_based)
-
-**Rationale:** Raises occur when EITHER cash depletes OR window opens
-
-**Need-Based Probability (v2.51 Logic):**
-if cash_runway_months < 3: return 0.85
-elif cash_runway_months < 6: return 0.65
-elif cash_runway_months < 12: return 0.35
-else: return 0.15
-
-**Opportunity-Based Probability (NEW):**
-catalyst_probability = next_catalyst['probability_trigger'] if catalyst within 90 days else 0.0
-window_probability = max([w['probability_raise'] for w in market_windows]) if windows_open else 0.0
-opportunity_probability = max(catalyst_probability, window_probability)
-
-**Output Example:**
-{
-  "combined_probability": 0.70,
-  "need_based_probability": 0.15,
-  "opportunity_based_probability": 0.70,
-  "dominant_mode": "Opportunity-Based",
-  "timing_driver": "Catalyst or market window"
-}
-
----
-
-## Updated Workflow Integration
-
-**OLD Workflow (v2.51):**
-PHASE 1: Baseline Certified Financials
-  ↓
-PHASE 2: Forward-Looking Capital Plans
-  ↓
-PHASE 3: Structural Validation
-
-**NEW Workflow (v2.6):**
-PHASE 1: Baseline Certified Financials
-  ↓
-PHASE 2: Forward-Looking Capital Plans
-  ↓
-PHASE 2.5: OPPORTUNITY ANALYSIS (NEW)  ← INSERT HERE
-  - Run Catalyst Event Tracker
-  - Run Market Window Detector
-  - Run Instrument Type Predictor
-  - Run Dual-Mode Probability Engine
-  ↓
-PHASE 3: Structural Validation
-
-### Phase 2.5 Implementation Code
-
-# PHASE 2.5: OPPORTUNITY ANALYSIS
-print("=" * 80)
-print("PHASE 2.5: OPPORTUNITY-BASED CAPITAL RAISE ANALYSIS (NEW IN v2.6)")
-print("=" * 80)
-
-# Step 1: Identify upcoming catalysts
-catalyst_tracker = CatalystEventTracker(ticker, company_data)
-catalysts = catalyst_tracker.identify_catalysts()
-next_catalyst = catalyst_tracker.get_next_catalyst()
-
-print(f"\n📅 Catalyst Event Tracker")
-print(f"   Identified Catalysts: {len(catalysts)}")
-if next_catalyst:
-    print(f"   Next Catalyst: {next_catalyst['type']} in {next_catalyst['days_away']} days")
-    print(f"   Trigger Probability: {next_catalyst['probability_trigger']*100:.0f}%")
-
-# Step 2: Detect market windows
-market_window_detector = MarketWindowDetector(ticker, stock_price_data, nav_data)
-market_windows = market_window_detector.detect_market_window()
-
-print(f"\n🪟 Market Window Detector")
-print(f"   Windows Open: {market_windows['market_windows_open']}")
-print(f"   Active Windows: {market_windows['num_windows']}")
-
-# Step 3: Predict instrument type
-instrument_predictor = InstrumentTypePredictor(
-    company_stage=company_data['stage'],
-    market_cap=market_cap,
-    irr=nav_data.get('irr'),
-    nav_multiple=market_cap / nav_data['npv_5pct'],
-    debt_capacity=nav_data.get('debt_capacity')
-)
-instrument_prediction = instrument_predictor.predict_instrument()
-
-print(f"\n💰 Instrument Type Prediction")
-print(f"   Predicted Instrument: {instrument_prediction['predicted_instrument']}")
-print(f"   Probability: {instrument_prediction['probability']*100:.0f}%")
-
-# Step 4: Calculate dual-mode probability
-probability_engine = DualModeProbabilityEngine(
-    cash_runway_months=phase1_cash_runway_months,
-    catalyst_tracker=catalyst_tracker,
-    market_window_detector=market_window_detector
-)
-combined_probability = probability_engine.calculate_combined_probability()
-
-print(f"\n🎯 Dual-Mode Probability")
-print(f"   Combined Probability: {combined_probability['combined_probability']*100:.0f}%")
-print(f"   Dominant Mode: {combined_probability['dominant_mode']}")
-
----
-
-
-
 # SECTION 3: SOURCING RULES & DECISION TREES
 
 ## Rule 1: Batch Related Metrics Into Single Searches
@@ -1192,18 +964,6 @@ The model classifies dilution risk into four tiers using **composite risk scorin
   "risk_category": "VERY HIGH RISK | HIGH RISK | MEDIUM RISK | LOW RISK",
   "risk_indicator": "🔴 | 🟠 | 🟡 | 🟢",
   "risk_score": 0.0,
-  "prediction_mode": "Need-Based | Opportunity-Based | Hybrid",
-  "need_based_probability": 0.0,
-  "opportunity_based_probability": 0.0,
-  "dominant_driver": "Cash depletion | Catalyst event | Market window",
-  "next_catalyst": {
-    "type": "string",
-    "days_away": 0,
-    "trigger_probability": 0.0
-  },
-  "market_windows": [],
-  "predicted_instrument": "Straight Equity | Convertible Debt | Project Finance",
-  "instrument_probability": 0.0,  
   "probability_of_raise_next_6q": 0.0,
   "expected_raise_size_million_CAD": 0.0,
   "predicted_dilution_percent": 0.0,
@@ -1213,7 +973,6 @@ The model classifies dilution risk into four tiers using **composite risk scorin
   "months_since_last_raise": 0,
   "cash_position": "Very Strong | Strong | Moderate | Weak",
   "rationale": "string"
-  
 }
 ```
 
@@ -1545,50 +1304,32 @@ Token Cost: 2K tokens, high quality
 
 ## Risk Scoring Formula
 
-### Composite Risk Score (Updated for v2.6)
+### Composite Risk Score
+The model calculates a **weighted composite score** combining probability, magnitude, and timing:
 
-The model calculates a **dual-mode weighted composite score**:
-
-**OLD Formula (v2.51 - Need-Based Only):**
-Risk Score = (P_raise / 100) × (D_expected / 10) × [1 + 2/(T_quarters + 1)]
-
-**NEW Formula (v2.6 - Dual-Mode):**
-Risk Score = MAX(Need_Score, Opportunity_Score)
+\[
+\text{Risk Score} = \left(\frac{P_{raise}}{100}\right) \times \left(\frac{D_{expected}}{10}\right) \times \left[1 + \frac{2}{T_{quarters} + 1}\right]
+\]
 
 Where:
-  Need_Score = (P_need / 100) × (D_expected / 10) × [1 + 2/(T_quarters + 1)]
-  
-  Opportunity_Score = (P_opportunity / 100) × (D_expected / 10) × Catalyst_Multiplier
-  
-  Catalyst_Multiplier = {
-    3.0  if catalyst within 30 days
-    2.0  if catalyst within 90 days
-    1.5  if catalyst within 180 days
-    1.0  otherwise
-  }
+- \( P_{raise} \) = Probability of raise (0-100%)
+- \( D_{expected} \) = Expected dilution percentage
+- \( T_{quarters} \) = Number of quarters until most likely raise
 
 **Interpretation:**
-- Risk score is determined by whichever mode (need or opportunity) produces higher score
-- Imminent catalysts (within 30 days) carry 3x multiplier vs. distant timing
-- Combines both cash depletion pressure AND market window/catalyst triggers
+- **Higher score = Higher risk**
+- Near-term raises weighted more heavily via timing multiplier
+- Considers both likelihood AND impact
 
-**Example Calculation (VZLA with v2.6):**
+### Example Calculation
+**West Red Lake Gold (WRLG):**
+- Probability: 45%
+- Expected Dilution: 18%
+- Timing: 4 quarters
 
-Need Score:
-  P_need = 15% (247-month runway)
-  D_expected = 8.5%
-  T_quarters = 16 quarters
-  Need_Score = 0.15 × 0.85 × 1.12 = 0.14
-
-Opportunity Score:
-  P_opportunity = 70% (FS completion in 11 days)
-  D_expected = 12% (anticipated larger raise if FS strong)
-  Catalyst_Multiplier = 3.0 (FS within 30 days)
-  Opportunity_Score = 0.70 × 1.2 × 3.0 = 2.52
-
-Final Risk Score = MAX(0.14, 2.52) = 2.52 (HIGH RISK)
-
-**Result:** v2.6 would correctly flag VZLA as HIGH RISK (vs. v2.51's MEDIUM RISK)
+\[
+\text{Risk Score} = \frac{45}{100} \times \frac{18}{10} \times \left[1 + \frac{2}{4+1}\right] = 0.45 \times 1.8 \times 1.4 = 1.134
+\]
 
 ---
 
@@ -1674,22 +1415,17 @@ else:
 ## Validation & Backtesting
 
 ### Historical Accuracy (2023-2025 Validation Set)
+| Metric | Performance |
+|--------|-------------|
+| **Prediction Accuracy (±1 quarter)** | 82% |
+| **Dilution Magnitude Error** | ±8% MAPE |
+| **False Positives (predicted raise, none occurred)** | 12% |
+| **False Negatives (missed raise)** | 6% |
 
-**v2.51 Performance:**
-| Metric | v2.51 (Old) | v2.6 (Projected) | Improvement |
-|--------|------------|------------------|-------------|
-| **Overall Accuracy** | 44% | 75%+ | +70% |
-| **Prediction Accuracy (±1 quarter)** | 0% | 60%+ | +∞ |
-| **Probability Prediction** | 2/5 | 4/5 | +100% |
-| **Dilution Magnitude Error** | ±8% MAPE | ±8% MAPE | Unchanged |
-| **Instrument Type Accuracy** | N/A | 65%+ | New capability |
-| **False Positives** | 12% | <15% | Target maintained |
-| **False Negatives** | 6% | <3% | -50% |
-
-### Calibration Metrics (Target for v2.6)
-- **AUC-ROC Score**: 0.87 → 0.92 (excellent discrimination)
-- **Brier Score**: 0.14 → 0.10 (better calibrated)
-- **Precision@Top20%**: 0.91 → 0.95 (high-risk predictions even more reliable)
+### Calibration Metrics
+- **AUC-ROC Score**: 0.87 (excellent discrimination)
+- **Brier Score**: 0.14 (well-calibrated probabilities)
+- **Precision@Top20%**: 0.91 (high-risk predictions very reliable)
 
 ---
 
@@ -1791,23 +1527,6 @@ When `include_social_format: true` is set in input:
 ---
 
 ## Version History
-
-### v2.6 (November 2025)
-- **MAJOR UPGRADE:** Added dual-mode prediction framework (need-based + opportunity-based)
-- New Module: Catalyst Event Tracker (FS, permitting, construction triggers)
-- New Module: Market Window Detector (stock rallies, NAV premiums, commodity strength)
-- New Module: Instrument Type Predictor (equity vs. convertible debt vs. project finance)
-- New Module: Dual-Mode Probability Engine
-- Updated risk score formula to incorporate catalyst timing multipliers
-- Improved timing accuracy from 0% to 60%+ (±1 quarter)
-- Improved probability accuracy from 44% to 75%+
-- Added Phase 2.5 to workflow (Opportunity Analysis)
-- Extended output schema with prediction mode details
-- Based on VZLA case study findings (Nov 2025)
-
-### v2.51 (October 2025)
-- Token efficiency improvements (40-50% reduction)
-- Hierarchical data sourcing framework
 
 ### v2.2
 - Added social media post generation with integrated validation workflow
