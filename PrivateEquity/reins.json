@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReinsuranceScheduleS",
+  "description": "Database specification for NAIC Schedule S ceded and assumed reinsurance data, including mapping to ultimate public holding companies.",
+  "type": "object",
+  "properties": {
+    "filing_metadata": {
+      "type": "object",
+      "properties": {
+        "filing_year": {
+          "type": "integer"
+        },
+        "statement_type": {
+          "type": "string",
+          "enum": [
+            "Life/Fraternal",
+            "Health"
+          ]
+        },
+        "filer_naic_code": {
+          "type": "string"
+        },
+        "filer_legal_name": {
+          "type": "string"
+        },
+        "filer_state_of_domicile": {
+          "type": "string"
+        },
+        "filer_group_name": {
+          "type": "string"
+        },
+        "filer_ticker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filer_cik": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filing_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_system": {
+          "type": "string"
+        },
+        "source_reference": {
+          "type": "string",
+          "description": "File name, URL, or vendor reference for the Schedule S data."
+        }
+      },
+      "required": [
+        "filing_year",
+        "statement_type",
+        "filer_naic_code",
+        "filer_legal_name"
+      ]
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "description": "Stable unique identifier for this Schedule S row."
+          },
+          "schedule_part": {
+            "type": "string",
+            "description": "Schedule S part identifier (e.g., 'Part 1', 'Part 3', 'Part 8')."
+          },
+          "section": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ceded_or_assumed": {
+            "type": "string",
+            "enum": [
+              "ceded",
+              "assumed"
+            ]
+          },
+          "filer_naic_code": {
+            "type": "string"
+          },
+          "filer_legal_name": {
+            "type": "string"
+          },
+          "ceding_company_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ceding_naic_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assuming_company_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assuming_naic_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reinsurer_domicile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line_of_business": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "High\u2011level line of business: life, annuity, health, other."
+          },
+          "product_segment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional finer segmentation (e.g., term life, perm life, payout annuity, deferred annuity, health)."
+          },
+          "treaty_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Coinsurance, yearly renewable term, stop loss, catastrophe, modco, funds withheld, etc."
+          },
+          "basis_of_reinsurance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "premium_written": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "premium_earned": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "premium_ceded": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "premium_assumed": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "claims_incurred": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "change_in_reserves": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reinsurance_recoverables_paid": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reinsurance_recoverables_unpaid": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "policy_reserves_affected": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "deposit_liability_adjustment": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "funds_withheld_balance": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "modco_reserve": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ultimate_parent_legal_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ultimate_parent_cik": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ultimate_parent_ticker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ultimate_parent_exchange": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "counterparty_is_public": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "mapping_confidence": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "0\u20111 confidence score for mapping to ultimate parent."
+          },
+          "source_page": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_line": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "load_batch_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "data_quality_flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "record_id",
+          "schedule_part",
+          "ceded_or_assumed",
+          "filer_naic_code"
+        ]
+      }
+    }
+  },
+  "required": [
+    "filing_metadata",
+    "records"
+  ]
+}

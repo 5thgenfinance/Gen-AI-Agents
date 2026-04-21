@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CompanyInvestedAssets",
+  "description": "Database specification for company invested asset portfolios derived primarily from SEC 10\u2011K filings.",
+  "type": "object",
+  "properties": {
+    "portfolio_metadata": {
+      "type": "object",
+      "properties": {
+        "ticker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cik": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "company_name": {
+          "type": "string"
+        },
+        "fiscal_year": {
+          "type": "integer"
+        },
+        "fiscal_year_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "filing_type": {
+          "type": "string",
+          "enum": [
+            "10-K",
+            "20-F",
+            "10-Q",
+            "Other"
+          ]
+        },
+        "filing_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_system": {
+          "type": "string"
+        },
+        "source_reference": {
+          "type": "string",
+          "description": "EDGAR URL, accession number, or file name."
+        }
+      },
+      "required": [
+        "company_name",
+        "fiscal_year"
+      ]
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "position_id": {
+            "type": "string",
+            "description": "Stable unique identifier for this position."
+          },
+          "security_description": {
+            "type": "string"
+          },
+          "issuer_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cusip": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ticker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "country_of_issue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "asset_class": {
+            "type": "string",
+            "enum": [
+              "fixed_maturity",
+              "equity",
+              "mortgage_loan",
+              "policy_loan",
+              "real_estate",
+              "cash_and_equivalents",
+              "derivative",
+              "alternative_investment",
+              "other"
+            ]
+          },
+          "instrument_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Corporate bond, municipal bond, sovereign, MBS, ABS, CMO, CLO, etc."
+          },
+          "naic_designation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rating_agency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rating": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "maturity_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "next_reset_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "coupon_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Fixed, floating, step\u2011up, zero, etc."
+          },
+          "coupon_rate": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "par_value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "amortized_cost": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "gross_unrealized_gain": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "gross_unrealized_loss": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fair_value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "book_yield": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "sector": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subsector": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secured": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "internal_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional firm\u2011specific identifier."
+          },
+          "source_note_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Note number and table label from the filing."
+          },
+          "source_page": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "load_batch_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "data_quality_flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "position_id",
+          "security_description",
+          "asset_class"
+        ]
+      }
+    }
+  },
+  "required": [
+    "portfolio_metadata",
+    "positions"
+  ]
+}

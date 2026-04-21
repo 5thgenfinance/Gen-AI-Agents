@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LiabilitySegmentsBlueBook",
+  "description": "Specification for liability segmentation derived from NAIC Life (Blue Book) statutory statements and mapped to public company tickers.",
+  "type": "object",
+  "properties": {
+    "filing_metadata": {
+      "type": "object",
+      "properties": {
+        "ticker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cik": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "public_company_name": {
+          "type": "string"
+        },
+        "naic_group_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filing_year": {
+          "type": "integer"
+        },
+        "statement_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_system": {
+          "type": "string"
+        },
+        "source_reference": {
+          "type": "string",
+          "description": "Vendor file, Blue Book extract, or other reference."
+        }
+      },
+      "required": [
+        "public_company_name",
+        "filing_year"
+      ]
+    },
+    "legal_entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity_id": {
+            "type": "string",
+            "description": "Internal unique identifier for the legal entity."
+          },
+          "naic_company_code": {
+            "type": "string"
+          },
+          "legal_entity_name": {
+            "type": "string"
+          },
+          "state_of_domicile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "segment_id": {
+                  "type": "string"
+                },
+                "segment_type": {
+                  "type": "string",
+                  "enum": [
+                    "deposit_free_withdrawal",
+                    "deposit_under_surrender_charge",
+                    "insurance_benefit_reserve"
+                  ]
+                },
+                "product_type": {
+                  "type": "string",
+                  "enum": [
+                    "term_life",
+                    "permanent_life",
+                    "payout_annuity",
+                    "deferred_annuity",
+                    "other_annuity",
+                    "health",
+                    "mixed_or_other"
+                  ]
+                },
+                "gross_liability": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "ceded_reinsurance": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "net_liability": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "estimation_flag": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Describe whether this value is direct from filings or estimated."
+                },
+                "source_exhibit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Blue Book exhibit and line reference(s)."
+                },
+                "source_page": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "data_quality_flags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "segment_id",
+                "segment_type",
+                "product_type"
+              ]
+            }
+          }
+        },
+        "required": [
+          "entity_id",
+          "naic_company_code",
+          "legal_entity_name",
+          "segments"
+        ]
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "properties": {
+        "total_segmented_liabilities": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "total_reported_relevant_liabilities": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "difference": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "difference_explanation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "filing_metadata",
+    "legal_entities"
+  ]
+}
